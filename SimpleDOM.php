@@ -1,7 +1,7 @@
 <?php
 /**
 
-Copyright 2009 The SimpleDOM authors
+Copyright 2009-2016 The SimpleDOM authors and maintainers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,8 @@ THE SOFTWARE.
 
 /**
 * @package SimpleDOM
-* @version $Id: SimpleDOM.php 60 2010-04-01 06:34:58Z simpledom.dev $
-* @link    $URL: https://simpledom.googlecode.com/svn/trunk/SimpleDOM.php $
+* @version 2.0.0
+* @link    $URL: https://github.com/supernovus/simpledom $
 */
 
 /**

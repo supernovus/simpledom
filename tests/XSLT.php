@@ -30,6 +30,12 @@ class SimpleDOM_TestCase_XSLT extends PHPUnit_Framework_TestCase
 {
 	public function testXSLTProcessor()
 	{
+    if (!extension_loaded('xsl'))
+    {
+      $this->markTestSkipped('The XSL extension is not available');
+      return;
+    }
+
 		$xml = new SimpleDOM('<xml><child>CHILD</child></xml>');
 
 		$this->assertXmlStringEqualsXmlString(

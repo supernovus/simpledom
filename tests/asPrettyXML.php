@@ -39,7 +39,8 @@ class SimpleDOM_TestCase_asPrettyXML extends PHPUnit_Framework_TestCase
   </child1>
   <child2/>
   <child3/>
-</root>';
+</root>
+';
 
 		$this->assertSame($expected, $root->asPrettyXML());
 	}
@@ -54,7 +55,8 @@ class SimpleDOM_TestCase_asPrettyXML extends PHPUnit_Framework_TestCase
   <child1/>
   <child2/>
   <child3/>
-</root>';
+</root>
+';
 
 		$this->assertSame($expected, $root->asPrettyXML());
 	}
@@ -64,11 +66,13 @@ class SimpleDOM_TestCase_asPrettyXML extends PHPUnit_Framework_TestCase
 		$root = new SimpleDOM('<?xml-stylesheet type="text/xsl" href="foobar.xsl" ?><root><child1 /><child2 /><child3 /></root>');
 
 		$expected = '<?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="foobar.xsl" ?><root>
+<?xml-stylesheet type="text/xsl" href="foobar.xsl" ?>
+<root>
   <child1/>
   <child2/>
   <child3/>
-</root>';
+</root>
+';
 
 		$this->assertSame($expected, $root->asPrettyXML());
 	}
@@ -80,10 +84,11 @@ class SimpleDOM_TestCase_asPrettyXML extends PHPUnit_Framework_TestCase
 		$expected = '<?xml version="1.0"?>
 <root>
   <child1/>
-  <cdata>&lt;foobar&gt;</cdata>
+  <cdata><![CDATA[<foobar>]]></cdata>
   <child2/>
   <child3/>
-</root>';
+</root>
+';
 
 		$this->assertSame($expected, $root->asPrettyXML());
 	}
@@ -97,7 +102,8 @@ class SimpleDOM_TestCase_asPrettyXML extends PHPUnit_Framework_TestCase
   <child1>text<grandchild1/></child1>
   <child2/>
   <child3/>
-</root>';
+</root>
+';
 
 		$this->assertSame($expected, $root->asPrettyXML());
 	}
@@ -117,7 +123,8 @@ class SimpleDOM_TestCase_asPrettyXML extends PHPUnit_Framework_TestCase
   <child1>text <b>bold</b> <i>italic</i></child1>
   <child2/>
   <child3/>
-</root>';
+</root>
+';
 
 		$this->assertSame($expected, $root->asPrettyXML());
 	}

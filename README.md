@@ -10,15 +10,19 @@ SimpleDOM is built upon SimpleXML and acts as a bridge providing DOM methods usi
 
 SimpleDOM is a single file with no dependencies. All you need to use it, is include it and create `SimleDOM` objects instead of `SimpleXMLElement` objects, or simply use `simpledom_load_string()` or `simpledom_load_string()`.
 
+## Documentation
+
+Download PHPDocumentor (I recommend the PHAR version, 2.9.0 if using PHP 7+), and simple run it while in the directory with the SimpleDOM.php and phpdoc.dist.xml file.
+
+## Tests
+
+Download PHPUnit (once again, I recommend the PHAR version, I tested with 5.7.0), and simply run it while in the directory with the phpunit.xml file.
+
 ## Credits
 
-This library is cloned from https://code.google.com/archive/p/simpledom/ where it appears to have been worked on until 2010.
+This library was originally cloned from https://code.google.com/archive/p/simpledom/ where it appears to have been worked on until 2010.
 
-I have updated the tests to work with the newest versions of PHPUnit, which are bundled as a PHAR archive and don't use the `require_once` calls anymore.
-
-I also added a `simpledom_import_dom()` method requested in the issue tracker on the original project.
-
-I may add new features and ensure it works with the newest versions of PHP as I maintain this copy on Github.
+I have updated the library and the tests to work in 2016, and have added and changed a few features.
 
 ## License
 

@@ -6,9 +6,9 @@ A bridge between SimpleXML and the DOM extension, plus a bunch of convenience me
 
 ## Description
 
-SimpleDOM is build upon SimpleXML and acts as a bridge providing DOM methods using SimpleXML's syntax. It also adds a bunch of convenience methods.
+SimpleDOM is built upon SimpleXML and acts as a bridge providing DOM methods using SimpleXML's syntax. It also adds a bunch of convenience methods.
 
-SimpleDOM is a single file with no dependencies. All you need to use it is include it and create `SimleDOM` objects instead of `SimpleXMLElement` objects, or simply use `simpledom_load_string()` or `simplexml_load_string()`.
+SimpleDOM is a single file with no dependencies. All you need to use it, is include it and create `SimleDOM` objects instead of `SimpleXMLElement` objects, or simply use `simpledom_load_string()` or `simpledom_load_string()`.
 
 ## Credits
 

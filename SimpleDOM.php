@@ -81,6 +81,15 @@ function simpledom_import_dom($string)
 }
 
 /**
+ * Convert a SimpleXML object into a SimpleDOM object.
+ */
+function simpledom_import_simplexml($simplexml)
+{
+  $dom = dom_import_simplexml($simplexml);
+  return simpledom_import_dom($dom);
+}
+
+/**
 * @package SimpleDOM
 */
 class SimpleDOM extends SimpleXMLElement

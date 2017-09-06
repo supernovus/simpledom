@@ -807,6 +807,17 @@ class SimpleDOM extends SimpleXMLElement
   }
 
   /**
+  * Return the root element.
+  *
+  * @return SimpleDOM
+  */
+  public function rootElement ()
+  {
+    $tmp = dom_import_simplexml($this);
+    return simplexml_import_dom($tmp->ownerDocument->documentElement, get_class($this));
+  }
+
+  /**
   * Return the current node using libXML formatting.
   *
   * @param  string  $filepath If set, save the result to this file

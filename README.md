@@ -12,17 +12,21 @@ SimpleDOM is a single file with no dependencies. All you need to use it, is incl
 
 ## Documentation
 
-Download PHPDocumentor (I recommend the PHAR version, 2.9.0 if using PHP 7+), and simple run it while in the directory with the SimpleDOM.php and phpdoc.dist.xml file.
+If you have 'make' and 'wget' installed, just type 'make doc' and it'll do the rest.
+
+If you don't have 'make', you'll need to download PHPDocumentor (I recommend the PHAR version, 2.9.0 if using PHP 7+), and simple run it while in the directory with the SimpleDOM.php and phpdoc.dist.xml file.
 
 ## Tests
 
-Download PHPUnit (once again, I recommend the PHAR version, I tested with 5.7.0), and simply run it while in the directory with the phpunit.xml file.
+If you have 'make' and 'wget' installed, just type 'make test' and it'll do the rest.
+
+If you don't have 'make', you'll need to download PHPUnit (once again, I recommend the PHAR version, I tested with 6.5.8), and simply run it while in the directory with the phpunit.xml file.
 
 ## Credits
 
 This library was originally cloned from https://code.google.com/archive/p/simpledom/ where it appears to have been worked on until 2010.
 
-I have updated the library and the tests to work in 2016, and have added and changed a few features.
+I have updated the library and the tests to work in 2018, and have added and changed a few features.
 
 ## License
 

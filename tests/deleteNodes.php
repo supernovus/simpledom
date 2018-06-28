@@ -26,7 +26,7 @@ THE SOFTWARE.
 #require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) . '/../SimpleDOM.php';
  
-class SimpleDOM_TestCase_deleteNodes extends PHPUnit_Framework_TestCase
+class SimpleDOM_TestCase_deleteNodes extends PHPUnit\Framework\TestCase
 {
 	public function testRootContext()
 	{

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) . '/../SimpleDOM.php';
  
-class SimpleDOM_TestCase_cloneChildrenFrom extends PHPUnit_Framework_TestCase
+class SimpleDOM_TestCase_cloneChildrenFrom extends PHPUnit\Framework\TestCase
 {
 	public function testMultipleDocuments()
 	{

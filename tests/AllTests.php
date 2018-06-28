@@ -37,14 +37,14 @@ class AllTests
 {
 	public static function main()
 	{
-		PHPUnit_TextUI_TestRunner::run(self::suite());
+		PHPUnit\TextUI\TestRunner::run(self::suite());
 	}
  
 	public static function suite()
 	{
 #		PHPUnit_Util_Filter::addDirectoryToFilter(dirname(__FILE__));
 
-		$suite = new PHPUnit_Framework_TestSuite();
+		$suite = new PHPUnit\Framework\TestSuite();
 		$suite->setName('SimpleDOM');
 
 		foreach	(glob(dirname(__FILE__)	. '/*.php')	as $filepath)

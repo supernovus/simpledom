@@ -25,7 +25,7 @@ THE SOFTWARE.
 
 /**
 * @package SimpleDOM
-* @version 2.0.0
+* @version 2.1.0
 * @link    $URL: https://github.com/supernovus/simpledom $
 */
 

@@ -1,0 +1,28 @@
+{
+  "name": "lum/simpledom",
+  "type": "library",
+  "description": "A bridge between SimpleXML and the DOM extension.",
+  "homepage": "https://github.com/supernovus/simpledom",
+  "license": "MIT",
+  "authors":
+  [
+    {
+      "name": "Google Code Archive",
+      "homepage": "https://code.google.com/archive/p/simpledom/",
+      "role": "Original Author"
+    },
+    {
+      "name": "Timothy Totten",
+      "role": "Current Maintainer"
+    }
+  ],
+  "require":
+  {
+    "php": "^5.6 || ^7.0",
+    "ext-xml": "*"
+  },
+  "autoload":
+  {
+    "files": ["SimpleDOM.php"]
+  }
+}

@@ -63,7 +63,7 @@ class SimpleDOM_TestCase_XSLT extends PHPUnit\Framework\TestCase
 	/**
 	* Internal stuff
 	*/
-	public function setUp()
+	public function setUp(): void
 	{
 		$this->filepath = sys_get_temp_dir() . '/SimpleDOM_TestCase_XSLT.xsl';
 
@@ -86,7 +86,7 @@ class SimpleDOM_TestCase_XSLT extends PHPUnit\Framework\TestCase
 		);
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		unlink($this->filepath);
 	}

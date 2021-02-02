@@ -52,7 +52,7 @@ class SimpleDOM_TestCase_simpledom_load_file extends PHPUnit\Framework\TestCase
 		return $this->filepath;
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		unlink($this->filepath);
 	}

@@ -26,5 +26,12 @@
   "autoload":
   {
     "files": ["SimpleDOM.php"]
+  },
+  "extra":
+  {
+    "branch-alias":
+    {
+      "dev-main": "2.x-dev"
+    }
   }
 }

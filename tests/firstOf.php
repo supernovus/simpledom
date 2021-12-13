@@ -23,8 +23,8 @@ THE SOFTWARE.
 
 */
 
-#require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) . '/../SimpleDOM.php';
+##require_once 'PHPUnit/Framework.php';
+#require_once dirname(__FILE__) . '/../SimpleDOM.php';
  
 class SimpleDOM_TestCase_firstOf extends PHPUnit\Framework\TestCase
 {

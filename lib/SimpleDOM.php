@@ -1,7 +1,7 @@
 <?php
 /**
 
-Copyright 2009-2016 The SimpleDOM authors and maintainers
+Copyright 2009-2021 The SimpleDOM authors and maintainers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-*/
+ */
+
+namespace SimpleDOM;
 
 /**
 * @package SimpleDOM
-* @version 2.1.0
+* @version 3.0.0
 * @link    $URL: https://github.com/supernovus/simpledom $
 */
 
@@ -90,9 +92,11 @@ function simpledom_import_simplexml($simplexml)
 }
 
 /**
-* @package SimpleDOM
-*/
-class SimpleDOM extends SimpleXMLElement
+ * The Node class represents an XML element.
+ * 
+ * It's the original SimpleDOM class, renamed for PHP namespaces.
+ */
+class Node extends SimpleXMLElement
 {
   //=================================
   // Factories
@@ -108,7 +112,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   static public function loadHTML($source, &$errors = null)
   {
-    return self::fromHTML('loadHTML', $source, $errors);
+    return static::fromHTML('loadHTML', $source, $errors);
   }
 
   /**
@@ -121,9 +125,10 @@ class SimpleDOM extends SimpleXMLElement
   */
   static public function loadHTMLFile($filename, &$errors = null)
   {
-    return self::fromHTML('loadHTMLFile', $filename, $errors);
+    return static::fromHTML('loadHTMLFile', $filename, $errors);
   }
 
+  // TODO: move the namespace functions above into static methods here.
 
   //=================================
   // DOM stuff
@@ -632,7 +637,8 @@ class SimpleDOM extends SimpleXMLElement
           $str .= $k . '="' . htmlspecialchars($v) . '" ';
         }
 
-        $data = substr($str, 0, -1);
+        $data = substr($str, 0, -1);{
+
       }
       else
       {
@@ -1069,10 +1075,6 @@ class SimpleDOM extends SimpleXMLElement
     return $tmp->appendChild($node);
   }
 
-  /**
-  * NOTE: in order to support LSB, __CLASS__ would need to be replaced by get_called_class() and
-  *   this method would need to be invoked via static:: instead of self::
-  */
   static protected function fromHTML($method, $arg, &$errors)
   {
     $old = libxml_use_internal_errors(true);
@@ -1084,7 +1086,7 @@ class SimpleDOM extends SimpleXMLElement
     $errors = array_slice(libxml_get_errors(), $cnt);
     libxml_use_internal_errors($old);
 
-    return simplexml_import_dom($dom, __CLASS__);
+    return simplexml_import_dom($dom, get_called_class());
   }
   /**#@-*/
 }

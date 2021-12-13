@@ -18,6 +18,6 @@
     <level>warn</level>
   </logging>
   <files>
-    <file>SimpleDOM.php</file>
+    <file>lib/SimpleDOM.php</file>
   </files>
 </phpdoc>

@@ -1,25 +1,28 @@
-.PHONY: test doc clean distclean
+.PHONY: test clean cleantools cleandoc distclean rebuild-doc
 
-test: phpunit
-	./phpunit
+vendor:
+	composer install
 
-phpunit:
-	wget -O ./phpunit https://phar.phpunit.de/phpunit-nightly.phar
-	chmod +x ./phpunit
+test: vendor
+	./vendor/bin/phpunit
+
+phpdoc:
+	wget -O ./phpdoc https://phpdoc.org/phpDocumentor.phar
+	chmod +x phpdoc
 
 doc: phpdoc
 	./phpdoc
 
-phpdoc:
-	wget -O ./phpdoc http://phpdoc.org/phpDocumentor.phar
-	chmod +x ./phpdoc
+rebuild-doc: cleandoc doc
 
 clean:
 	rm -rf ./build
 
 cleantools:
-	rm -f ./phpunit ./phpdoc 
+	rm -fv ./phpdoc
 
-distclean: clean cleantools
+cleandoc:
 	rm -rf ./doc
+
+distclean: clean cleantools cleandoc
 

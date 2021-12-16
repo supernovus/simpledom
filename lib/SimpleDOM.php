@@ -23,112 +23,131 @@ THE SOFTWARE.
 
  */
 
-namespace SimpleDOM;
-
 /**
-* @package SimpleDOM
-* @version 3.0.0
-* @link    $URL: https://github.com/supernovus/simpledom $
-*/
-
-/**
-* Alias for simplexml_load_file()
-*
-* @return SimpleDOM
-*/
-function simpledom_load_file($filename)
-{
-  $args = func_get_args();
-
-  if (isset($args[0]) && !isset($args[1]))
-  {
-    $args[1] = 'SimpleDOM';
-  }
-
-  return call_user_func_array('simplexml_load_file', $args);
-}
-
-/**
-* Alias for simplexml_load_string()
-*
-* @return SimpleDOM
-*/
-function simpledom_load_string($string)
-{
-  $args = func_get_args();
-
-  if (isset($args[0]) && !isset($args[1]))
-  {
-    $args[1] = 'SimpleDOM';
-  }
-
-  return call_user_func_array('simplexml_load_string', $args);
-}
-
-/**
-* Alias for simplexml_load_dom()
-*
-* @return SimpleDOM
-*/
-function simpledom_import_dom($string)
-{
-  $args = func_get_args();
-
-  if (isset($args[0]) && !isset($args[1]))
-  {
-    $args[1] = 'SimpleDOM';
-  }
-
-  return call_user_func_array('simplexml_import_dom', $args);
-}
-
-/**
- * Convert a SimpleXML object into a SimpleDOM object.
+ * @package SimpleDOM
+ * @version 3.0.0
+ * @link    $URL: https://github.com/supernovus/simpledom $
  */
-function simpledom_import_simplexml($simplexml)
-{
-  $dom = dom_import_simplexml($simplexml);
-  return simpledom_import_dom($dom);
-}
 
 /**
- * The Node class represents an XML element.
+ * A class that combines the SimpleXML and DOM extensions into one.
  * 
- * It's the original SimpleDOM class, renamed for PHP namespaces.
+ * And adds some extra convenience wrappers as well.
  */
-class Node extends SimpleXMLElement
+class SimpleDOM extends SimpleXMLElement
 {
   //=================================
   // Factories
   //=================================
 
   /**
-  * Create a SimpleDOM object from a HTML string
-  *
-  * @param  string    $source   HTML source
-  * @param  mixed   &$errors  Passed by reference. Will be replaced by an array of
-  *                 LibXMLError objects if applicable
-  * @return SimpleDOM
-  */
-  static public function loadHTML($source, &$errors = null)
+   * Create a SimpleDOM object from a HTML string
+   *
+   * @param  string    $source   HTML source
+   * @param  mixed     &$errors  (Optional) Passed by reference;
+   *  Will be replaced by an array of LibXMLError objects if applicable
+   * @param  int       $opts     (Optional) LibXML options
+   * @return SimpleDOM
+   */
+  static public function loadHTML(
+    string $source, 
+    &$errors=null, 
+    int $opts=0): ?SimpleDOM
   {
-    return static::fromHTML('loadHTML', $source, $errors);
+    return static::fromHTML('loadHTML', $source, $opts, $errors);
   }
 
   /**
-  * Create a SimpleDOM object from a HTML file
-  *
-  * @param  string    $filename Path/URL to HTML file
-  * @param  mixed   &$errors  Passed by reference. Will be replaced by an array of
-  *                 LibXMLError objects if applicable
-  * @return SimpleDOM
-  */
-  static public function loadHTMLFile($filename, &$errors = null)
+   * Create a SimpleDOM object from a HTML file
+   *
+   * @param  string    $filename Path/URL to HTML file
+   * @param  mixed     &$errors  (Optional) Passed by reference;
+   *  Will be replaced by an array of LibXMLError objects if applicable
+   * @param  int       $opts     (Optional) LibXML options
+   * @return SimpleDOM
+   */
+  static public function loadHTMLFile(
+    string $filename, 
+    &$errors=null, 
+    int $opts=0): ?SimpleDOM
   {
-    return static::fromHTML('loadHTMLFile', $filename, $errors);
+    return static::fromHTML('loadHTMLFile', $filename, $opts, $errors);
   }
 
-  // TODO: move the namespace functions above into static methods here.
+  /**
+   * Create a SimpleDOM object from an XML file
+   *
+   * @param  string  $filename   Path to HTML file
+   * @param  int     $options    (Optional) LibXML options
+   * @param  string  $ns_or_pre  (Optional) Namespace prefix or URI.
+   * @param  bool    $is_prefix  (Optional) `true` if prefix, `false` if URI.
+   *
+   * @return SimpleDOM
+   */
+  static public function loadFile(
+    string $filename, 
+    int $options=0,
+    string $ns_or_pre="",
+    bool $is_prefix=false): ?SimpleDOM
+  {
+    $args =
+    [
+      $filename,
+      get_called_class(),
+      $options,
+      $ns_or_pre,
+      $is_prefix
+    ];
+    
+    $sd = call_user_func_array('simplexml_load_file', $args);
+
+    if (is_object($sd))
+    {
+      return $sd;
+    }
+    else
+    {
+      return null;
+    }
+  }
+  
+  /**
+   * Create a SimpleDOM object from a regular DOM object.
+   *
+   * @param DOMNode $dom  Object to make SimpleDOM from.
+   *
+   * @return SimpleDOM
+   */
+  static public function fromDOM(DOMNode $dom): ?SimpleDOM
+  {
+    $class = get_called_class();  
+    return call_user_func('simplexml_import_dom', $dom, $class);
+  }
+  
+  /**
+   * Create a SimpleDOM object from a SimpleXML object.
+   *
+   * @param SimpleXMLElement $simplexml  Object to make SimpleDOM from.
+   *
+   * @return SimpleDOM
+   */
+  static public function fromSimpleXML(SimpleXMLElement $simplexml): ?SimpleDOM
+  {
+    $dom = dom_import_simplexml($simplexml);
+    $class = get_called_class();
+    return $class::fromDOM($dom);
+  }
+
+  /**
+   * Create a SimpleDOM object from various kinds of input.
+   *
+   * @param mixed $input  What we're creating the SimpleDOM from.
+   *
+   *
+   */
+  static public function load($input)
+  {
+  }
 
   //=================================
   // DOM stuff
@@ -637,7 +656,7 @@ class Node extends SimpleXMLElement
           $str .= $k . '="' . htmlspecialchars($v) . '" ';
         }
 
-        $data = substr($str, 0, -1);{
+        $data = substr($str, 0, -1);
 
       }
       else
@@ -1075,13 +1094,13 @@ class Node extends SimpleXMLElement
     return $tmp->appendChild($node);
   }
 
-  static protected function fromHTML($method, $arg, &$errors)
+  static protected function fromHTML($method, $arg, $opts, &$errors)
   {
     $old = libxml_use_internal_errors(true);
     $cnt = count(libxml_get_errors());
 
     $dom = new DOMDocument;
-    $dom->$method($arg);
+    $dom->$method($arg, $opts);
 
     $errors = array_slice(libxml_get_errors(), $cnt);
     libxml_use_internal_errors($old);

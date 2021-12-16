@@ -18,20 +18,28 @@
   ],
   "require":
   {
-    "php": "^5.6 || ^7.0 || ^8.0",
+    "php": "^7.1 || ^8.0",
     "ext-xml": "*",
     "ext-dom": "*",
     "ext-SimpleXML": "*"
   },
+  "require-dev":
+  {
+    "phpunit/phpunit": "^9.0"
+  },
+  "suggest":
+  {
+    "lum/simpledom-functional": "The simpledom_*() global functions for legacy code."
+  },
   "autoload":
   {
-    "files": ["SimpleDOM.php"]
+    "classmap": ["lib/SimpleDOM.php"]
   },
   "extra":
   {
     "branch-alias":
     {
-      "dev-main": "2.x-dev"
+      "dev-main": "3.x-dev"
     }
   }
 }

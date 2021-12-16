@@ -8,25 +8,28 @@ A bridge between SimpleXML and the DOM extension, plus a bunch of convenience me
 
 SimpleDOM is built upon SimpleXML and acts as a bridge providing DOM methods using SimpleXML's syntax. It also adds a bunch of convenience methods.
 
-SimpleDOM is a single file with no dependencies. All you need to use it, is include it and create `SimleDOM` objects instead of `SimpleXMLElement` objects, or simply use `simpledom_load_string()` or `simpledom_load_string()`.
+## Functional interface
+
+The older versions of this library exported some functions into the global
+PHP namespace. These are no longer included in the base package.
+
+If you have legacy code requiring the global functions, you can install [simpledom-functional](https://github.com/supernovus/simpledom-functional) from composer and it will add them. I do recommend moving away from the global functions and using the newer static class methods instead.
 
 ## Documentation
 
-If you have 'make' and 'wget' installed, just type 'make doc' and it'll do the rest.
-
-If you don't have 'make', you'll need to download PHPDocumentor (I recommend the PHAR version, 2.9.0 if using PHP 7+), and simple run it while in the directory with the SimpleDOM.php and phpdoc.dist.xml file.
+Run `make doc` to download phpDocumentor and build the docs.
+The makefile is set up to use `wget` so if you require a different download
+tool, you'll need to download the file manually and name it `./phpdoc`.
 
 ## Tests
 
-If you have 'make' and 'wget' installed, just type 'make test' and it'll do the rest.
-
-If you don't have 'make', you'll need to download PHPUnit (once again, I recommend the PHAR version, I tested with 6.5.8), and simply run it while in the directory with the phpunit.xml file.
+Run `make test` to run the tests with PHPUnit, which is installed via composer.
 
 ## Credits
 
 This library was originally cloned from https://code.google.com/archive/p/simpledom/ where it appears to have been worked on until 2010.
 
-I have updated the library and the tests to work in 2018, and have added and changed a few features.
+I've been slowly updating it ever since forking it in 2016.
 
 ## License
 

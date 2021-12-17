@@ -13,8 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Static `fromSimpleXML()` method to get a SimpleDOM from a SimpleXMLElement.
 - Static `from()` method to detect input and call an appropriate loader.
 - Static `load()` method is an alias to `from()`.
+- Static `useErrors(), lastError(), getErrors(), clearErrors()` methods that wrap libxml functions.
+- Static `errorRun()` for running a Closure and recording LibXML errors.
+- Static `errorCall()` for running a callable and recording LibXML errors.
 
 ### Changed
+- Dropped PHP 5 support, PHP 7.4 is now the minimum. Use 2.x for PHP 5.
 - `loadHTML()` and `loadHTMLFile()` support passing LibXML options now.
 - `loadHTML()` and `loadHTMLFile()` will work in sub-classes now.
 - Composer Autoloader using `classmap` instead of `files` now.
@@ -27,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed downloading the phpunit.phar from the Makefile. Use composer instead.
 - Moved the global functions into the `lum/simpledom-functional` package.
 - Any tests for the global functions are moved into the new package as well.
+- The `&$errors` option from `loadHTML()` and `loadHTMLFile()` is gone now.
 
 ## [2.1.2]
 ### Added

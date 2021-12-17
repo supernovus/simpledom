@@ -105,7 +105,8 @@ class SimpleDOM_TestCase_loadHTML extends PHPUnit\Framework\TestCase
 				</body>
 			</html>';
 
-		$node = SimpleDOM::loadHTML($html, $errors);
+    [$node, $errors] = 
+      SimpleDOM::errorRun(fn() => SimpleDOM::loadHTML($html));
 
 		$this->assertInternalType('array', $errors, '$errors was not initialized as an array');
 

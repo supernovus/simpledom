@@ -25,7 +25,7 @@ THE SOFTWARE.
 
 /**
  * @package SimpleDOM
- * @version 3.0.0
+ * @version 3.x
  * @link    $URL: https://github.com/supernovus/simpledom $
  */
 
@@ -36,6 +36,96 @@ THE SOFTWARE.
  */
 class SimpleDOM extends SimpleXMLElement
 {
+  /**
+   * The SimpleDOM major release number as an integer.
+   */
+  const VER = 3;
+
+  //=================================
+  // LibXML Related stuff
+  //=================================
+
+  protected static $use_errors = false; // Our current use_errors value.
+  protected static $err_index  = 0;     // Offset for errors.
+
+  static public function useErrors(?bool $use=null): bool
+  {
+    if (is_null($use))
+    { // We're going to toggle the current value.
+      $use = !static::$use_errors;
+    }
+
+    $prev = libxml_use_internal_errors($use);
+    static::$use_errors = $use;
+
+    if ($use)
+    { // We're turning errors on, record the current count.
+      static::$err_index = count(libxml_get_errors());
+    }
+    else
+    { // Turning errors off.
+      static::$err_index = 0;
+    }
+
+    return $prev;
+  }
+
+  static public function lastError()
+  {
+    return libxml_get_last_error();
+  }
+
+  static public function getErrors($all=false): array
+  {
+    $errs = libxml_get_errors();
+    if ($all)
+    {
+      return $errs;
+    }
+    else
+    {
+      return array_slice($errs, static::$err_index);
+    }
+  }
+
+  static public function clearErrors(): void
+  {
+    libxml_clear_errors();
+  }
+
+  /**
+   * Run a closure with LibXML error handling, and return any errors.
+   *
+   * @param Closure $closure  The closure to run.
+   *
+   * @return array [mixed $valueFromClosure, array $errorsFromLibXML]
+   */
+  static public function errorRun(Closure $closure)
+  {
+    $prev = static::useErrors(true);
+    $value = $closure();
+    $errors = static::getErrors();
+    static::useErrors($prev);
+    return [$value, $errors];
+  }
+
+  /**
+   * Run a callable with LibXML error handling, and return any errors.
+   *
+   * @param callable $callable  The callable to run.
+   * @param array    $args      Arguments to pass to the callable.
+   *
+   * @return array [mixed $valueFromCallable, array $errorsFromLibXML]
+   */
+  static public function errorCall(callable $callable, array $args)
+  {
+    $prev = static::useErrors(true);
+    $value = call_user_func_array($callable, $args);
+    $errors = static::getErrors();
+    static::useErrors($prev);
+    return [$value, $errors];
+  }
+
   //=================================
   // Factories
   //=================================
@@ -44,34 +134,26 @@ class SimpleDOM extends SimpleXMLElement
    * Create a SimpleDOM object from a HTML string
    *
    * @param  string    $source   HTML source
-   * @param  mixed     &$errors  (Optional) Passed by reference;
-   *  Will be replaced by an array of LibXMLError objects if applicable
    * @param  int       $opts     (Optional) LibXML options
+   *
    * @return SimpleDOM
    */
-  static public function loadHTML(
-    string $source, 
-    &$errors=null, 
-    int $opts=0): ?SimpleDOM
+  static public function loadHTML(string $source, int $opts=0): ?SimpleDOM
   {
-    return static::fromHTML('loadHTML', $source, $opts, $errors);
+    return static::fromHTML('loadHTML', $source, $opts);
   }
 
   /**
    * Create a SimpleDOM object from a HTML file
    *
    * @param  string    $filename Path/URL to HTML file
-   * @param  mixed     &$errors  (Optional) Passed by reference;
-   *  Will be replaced by an array of LibXMLError objects if applicable
    * @param  int       $opts     (Optional) LibXML options
+   *
    * @return SimpleDOM
    */
-  static public function loadHTMLFile(
-    string $filename, 
-    &$errors=null, 
-    int $opts=0): ?SimpleDOM
+  static public function loadHTMLFile(string $filename, int $opts=0): ?SimpleDOM
   {
-    return static::fromHTML('loadHTMLFile', $filename, $opts, $errors);
+    return static::fromHTML('loadHTMLFile', $filename, $opts);
   }
 
   /**
@@ -84,31 +166,24 @@ class SimpleDOM extends SimpleXMLElement
    *
    * @return SimpleDOM
    */
-  static public function loadFile(
-    string $filename, 
-    int $options=0,
-    string $ns_or_pre="",
-    bool $is_prefix=false): ?SimpleDOM
+  static public function loadFile(string $filename): ?SimpleDOM
   {
-    $args =
-    [
-      $filename,
-      get_called_class(),
-      $options,
-      $ns_or_pre,
-      $is_prefix
-    ];
-    
-    $sd = call_user_func_array('simplexml_load_file', $args);
+    return static::fromSXML('simplexml_load_file', func_get_args());
+  }
 
-    if (is_object($sd))
-    {
-      return $sd;
-    }
-    else
-    {
-      return null;
-    }
+  /**
+   * Create a SimpleDOM object from an XML string
+   *
+   * @param  string  $string     Valid XML string to parse.
+   * @param  int     $options    (Optional) LibXML options
+   * @param  string  $ns_or_pre  (Optional) Namespace prefix or URI.
+   * @param  bool    $is_prefix  (Optional) `true` if prefix, `false` if URI.
+   *
+   * @return SimpleDOM
+   */
+  static public function loadXML(string $string): ?SimpleDOM
+  {
+    return static::fromSXML('simplexml_load_string', func_get_args());
   }
   
   /**
@@ -120,8 +195,7 @@ class SimpleDOM extends SimpleXMLElement
    */
   static public function fromDOM(DOMNode $dom): ?SimpleDOM
   {
-    $class = get_called_class();  
-    return call_user_func('simplexml_import_dom', $dom, $class);
+    return call_user_func('simplexml_import_dom', $dom, get_called_class());
   }
   
   /**
@@ -134,8 +208,14 @@ class SimpleDOM extends SimpleXMLElement
   static public function fromSimpleXML(SimpleXMLElement $simplexml): ?SimpleDOM
   {
     $dom = dom_import_simplexml($simplexml);
-    $class = get_called_class();
-    return $class::fromDOM($dom);
+    if (is_object($dom))
+    {
+      return static::fromDOM($dom);
+    }
+    else
+    {
+      return null;
+    }
   }
 
   /**
@@ -143,10 +223,40 @@ class SimpleDOM extends SimpleXMLElement
    *
    * @param mixed $input  What we're creating the SimpleDOM from.
    *
+   * May be a filename, an XML string, a SimpleXMLElement, or a DOMNode.
+   * If it's none of those, null will be returned.
    *
+   * @return SimpleDOM
    */
-  static public function load($input)
+  static public function load($input): ?SimpleDOM
   {
+    if (is_string($input))
+    { 
+      $class = get_called_class();
+      $args = func_get_args();
+      if (is_int(strpos($input, '<')))
+      { // A < symbol was in the string, we're going to assume it's XML.
+        return call_user_func_array([$class, 'loadXML'], $args);
+      }
+      elseif (file_exists($input))
+      {
+        return call_user_func_array([$class, 'loadFile'], $args);
+      }
+    }
+    elseif (is_object($input))
+    {
+      if ($input instanceof SimpleXMLElement)
+      {
+        return static::fromSimpleXML($input);
+      }
+      elseif ($input instanceof DOMNode)
+      {
+        return static::fromDOM($input);
+      }
+    }
+
+    // Nothing matched.
+    return null;
   }
 
   //=================================
@@ -1094,18 +1204,35 @@ class SimpleDOM extends SimpleXMLElement
     return $tmp->appendChild($node);
   }
 
-  static protected function fromHTML($method, $arg, $opts, &$errors)
+  static protected function fromHTML(string $method, string $arg, int $opts): 
+    ?SimpleDOM
   {
-    $old = libxml_use_internal_errors(true);
-    $cnt = count(libxml_get_errors());
-
     $dom = new DOMDocument;
     $dom->$method($arg, $opts);
-
-    $errors = array_slice(libxml_get_errors(), $cnt);
-    libxml_use_internal_errors($old);
-
-    return simplexml_import_dom($dom, get_called_class());
+    $sdom = simplexml_import_dom($dom, get_called_class());
+    if (is_object($sdom))
+    {
+      return $sdom;
+    }
+    else
+    {
+      return null;
+    }
   }
+
+  static protected function fromSXML(string $func, array $args): ?SimpleDOM
+  {
+    array_splice($args, 1, 0, [get_called_class()]);
+    $sdom = call_user_func_array($func, $args);
+    if (is_object($sdom))
+    { 
+      return $sdom;
+    }
+    else
+    {
+      return null;
+    }
+  }
+
   /**#@-*/
 }

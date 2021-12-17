@@ -23,6 +23,9 @@ tool, you'll need to download the file manually and name it `./phpdoc`.
 
 ## Tests
 
+NOTE: Many of the tests are currently broken as they were written for an
+older version of PHPUnit. I will be updating them when I have a chance.
+
 Run `make test` to run the tests with PHPUnit, which is installed via composer.
 
 ## Credits

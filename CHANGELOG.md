@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved the global functions into the `lum/simpledom-functional` package.
 - Any tests for the global functions are moved into the new package as well.
 - The `&$errors` option from `loadHTML()` and `loadHTMLFile()` is gone now. Instead if you want to get parse errors, just wrap the calls in an `[$res, $err] = errorRun(fn() => SimpleDOM::loadHTML($htmlDoc))` block and presto, results from the command, and an array of errors. This works for _any_ method calls, and I think is a better way of handling LibXML errors.
+- Dropped support for the old XSLCache PECL extension which hasn't been mainted or updated since 2013.
 
 ## [2.1.2]
 ### Added

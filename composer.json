@@ -29,7 +29,8 @@
   },
   "suggest":
   {
-    "lum/simpledom-functional": "The simpledom_*() global functions for legacy code."
+    "lum/simpledom-functional": "The simpledom_*() global functions for legacy code.",
+    "ext-xsl": "The 'xsl' extension will enable the XSLT() method."
   },
   "autoload":
   {

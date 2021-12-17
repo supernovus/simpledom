@@ -1,6 +1,5 @@
 <?php
-/**
-
+/*
 Copyright 2009-2021 The SimpleDOM authors and maintainers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -41,53 +40,73 @@ class SimpleDOM extends SimpleXMLElement
    */
   const VER = 3;
 
+  /**
+   * Set this to false to make `insertXML()` not trap LibXML errors.
+   */
+  public static $internal_insert_xml_errors = true;
+
+  /**
+   * Set this to false to make anything using xpath not trap LibXML errors.
+   */
+  public static $internal_xpath_errors = true;
+
   //=================================
   // LibXML Related stuff
   //=================================
+  
 
-  protected static $use_errors = false; // Our current use_errors value.
-  protected static $err_index  = 0;     // Offset for errors.
-
-  static public function useErrors(?bool $use=null): bool
+  /**
+   * Enable or disable internal handling of LibXML errors.
+   *
+   * @param ?bool $use  Value to send to `libxml_use_internal_errors()`
+   * 
+   * @return array  [bool $prev, int $count]
+   *
+   *   `$prev` will be the output from `libxml_use_internal_errors();`
+   *   This can be used to restore the previous value when finished.
+   *
+   *   `$count` will be the number of errors already in the LibXML stack.
+   *   This can be used with `getErrors()` to return only errors added since
+   *   this method was called.
+   *
+   */
+  static public function useErrors(?bool $use)
   {
-    if (is_null($use))
-    { // We're going to toggle the current value.
-      $use = !static::$use_errors;
-    }
-
     $prev = libxml_use_internal_errors($use);
-    static::$use_errors = $use;
+    $count = count(libxml_get_errors());
 
-    if ($use)
-    { // We're turning errors on, record the current count.
-      static::$err_index = count(libxml_get_errors());
-    }
-    else
-    { // Turning errors off.
-      static::$err_index = 0;
-    }
-
-    return $prev;
+    return [$prev, $count];
   }
 
+  /**
+   * Get the last LibXML error message.
+   */
   static public function lastError()
   {
     return libxml_get_last_error();
   }
 
-  static public function getErrors($all=false): array
+  /**
+   * Get current LibXML error messages.
+   *
+   * @param int $offset  (Optional) Offset in the errors array to return from.
+   *
+   * @return array  An array of errors from LibXML.
+   */
+  static public function getErrors(int $offset=0): array
   {
     $errs = libxml_get_errors();
-    if ($all)
-    {
-      return $errs;
+    if ($offset)
+    { // We want just a slice of the errors.
+      return array_slice($errs, $offset);
     }
-    else
-    {
-      return array_slice($errs, static::$err_index);
-    }
+    // We want all the errors.
+    return $errs;
   }
 
+  /**
+   * Clear the LibXML error stack.
+   */
   static public function clearErrors(): void
   {
     libxml_clear_errors();
@@ -98,13 +117,24 @@ class SimpleDOM extends SimpleXMLElement
    *
    * @param Closure $closure  The closure to run.
    *
-   * @return array [mixed $valueFromClosure, array $errorsFromLibXML]
+   *   The closure is called directly with no arguments.
+   *   I personally recommend using the `fn() => SimpleDOM::foo()` lamda syntax
+   *   for building simple closures. If you need more than one line you'll
+   *   need to use a full `function() { ... }` syntax instead.
+   *
+   * @return array [mixed $result, array $errors]
+   *
+   *   `$result` is the output of `$closure();`
+   *
+   *   `$errors` is an array of any errors, it may be empty.
+   *   Only errors encountered during the closure call are returned.
+   *
    */
   static public function errorRun(Closure $closure)
   {
-    $prev = static::useErrors(true);
+    [$prev, $cnt] = static::useErrors(true);
     $value = $closure();
-    $errors = static::getErrors();
+    $errors = static::getErrors($cnt);
     static::useErrors($prev);
     return [$value, $errors];
   }
@@ -115,13 +145,19 @@ class SimpleDOM extends SimpleXMLElement
    * @param callable $callable  The callable to run.
    * @param array    $args      Arguments to pass to the callable.
    *
-   * @return array [mixed $valueFromCallable, array $errorsFromLibXML]
+   * @return array [mixed $result, array $errors]
+   *
+   *   `$result` is the output of `call_user_func_array($callable, $args);`
+   *
+   *   `$errors` is an array of any errors, it may be empty.
+   *   Only errors encountered during the callable execution are returned.
+   *
    */
   static public function errorCall(callable $callable, array $args)
   {
-    $prev = static::useErrors(true);
+    [$prev, $cnt] = static::useErrors(true);
     $value = call_user_func_array($callable, $args);
-    $errors = static::getErrors();
+    $errors = static::getErrors($cnt);
     static::useErrors($prev);
     return [$value, $errors];
   }
@@ -259,6 +295,14 @@ class SimpleDOM extends SimpleXMLElement
     return null;
   }
 
+  /**
+   * Literally just an alias to `load()`
+   */
+  static public function from($input): ?SimpleDOM
+  {
+    return static::load($input);
+  }
+
   //=================================
   // DOM stuff
   //=================================
@@ -309,7 +353,7 @@ class SimpleDOM extends SimpleXMLElement
       'textContent'   => 'property'
     );
 
-    $dom = dom_import_simplexml($this);
+    $dom = $this->asDOM();
 
     if (!isset($passthrough[$name]))
     {
@@ -370,7 +414,7 @@ class SimpleDOM extends SimpleXMLElement
         return $this;
       }
 
-      return simplexml_import_dom($ret, get_class($this));
+      return static::fromDOM($ret);
     }
 
     if ($ret instanceof DOMNodeList)
@@ -382,7 +426,7 @@ class SimpleDOM extends SimpleXMLElement
       while (++$i < $ret->length)
       {
         $node = $ret->item($i);
-        $list[$i] = ($node instanceof DOMText) ? $node->textContent : simplexml_import_dom($node, $class);
+        $list[$i] = ($node instanceof DOMText) ? $node->textContent : static::fromDOM($node);
       }
 
       return $list;
@@ -409,10 +453,9 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function insertBeforeSelf(SimpleXMLElement $new)
   {
-    $tmp = dom_import_simplexml($this);
+    $tmp = $this->asDOM();
     $node = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
-
-    return simplexml_import_dom($this->insertNode($tmp, $node, 'before'), get_class($this));
+    return $this->insertNode($tmp, $node, 'before', true);
   }
 
   /**
@@ -428,10 +471,9 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function insertAfterSelf(SimpleXMLElement $new)
   {
-    $tmp = dom_import_simplexml($this);
+    $tmp = $this->asDOM();
     $node = $tmp->ownerDocument->importNode(dom_import_simplexml($new), true);
-
-    return simplexml_import_dom($this->insertNode($tmp, $node, 'after'), get_class($this));
+    return $this->insertNode($tmp, $node, 'after', true);
   }
 
   /**
@@ -446,7 +488,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function deleteSelf()
   {
-    $tmp = dom_import_simplexml($this);
+    $tmp = $this->asDOM();
 
     if ($tmp->isSameNode($tmp->ownerDocument->documentElement))
     {
@@ -468,7 +510,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function removeSelf()
   {
-    $tmp = dom_import_simplexml($this);
+    $tmp = $this->asDOM();
 
     if ($tmp->isSameNode($tmp->ownerDocument->documentElement))
     {
@@ -476,7 +518,7 @@ class SimpleDOM extends SimpleXMLElement
     }
 
     $node = $tmp->parentNode->removeChild($tmp);
-    return simplexml_import_dom($node, get_class($this));
+    return static::fromDOM($node);
   }
 
   /**
@@ -492,7 +534,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function replaceSelf(SimpleXMLElement $new)
   {
-    $old = dom_import_simplexml($this);
+    $old = $this->asDOM();
     $new = $old->ownerDocument->importNode(dom_import_simplexml($new), true);
 
     $node = $old->parentNode->replaceChild($new, $old);
@@ -599,7 +641,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function copyAttributesFrom(SimpleXMLElement $src, $overwrite = true)
   {
-    $dom = dom_import_simplexml($this);
+    $dom = $this->asDOM();
 
     foreach (dom_import_simplexml($src)->attributes as $attr)
     {
@@ -626,7 +668,7 @@ class SimpleDOM extends SimpleXMLElement
   public function cloneChildrenFrom(SimpleXMLElement $src, $deep = true)
   {
     $src = dom_import_simplexml($src);
-    $dst = dom_import_simplexml($this);
+    $dst = $this->asDOM();
     $doc = $dst->ownerDocument;
 
     $fragment = $doc->createDocumentFragment();
@@ -649,7 +691,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function moveTo(SimpleXMLElement $dst)
   {
-    return simplexml_import_dom(dom_import_simplexml($dst), get_class($this))->appendChild($this->removeSelf());
+    return static::fromSimpleXML($dst)->appendChild($this->removeSelf());
   }
 
   /**
@@ -711,33 +753,47 @@ class SimpleDOM extends SimpleXMLElement
     return $this;
   }
 
-
   /**
   * Insert raw XML data
   *
   * @param  string    $xml  XML to insert
   * @param  string    $mode Where to add this tag: 'append' to current node,
   *               'before' current node or 'after' current node
+  *
   * @return SimpleDOM     Current node
+  *
+  * @throws InvalidArgumentException  If LibXML fails to parse/append the XML.
   */
   public function insertXML($xml, $mode = 'append')
   {
-    $tmp = dom_import_simplexml($this);
+    $tmp = $this->asDOM();
     $fragment = $tmp->ownerDocument->createDocumentFragment();
 
-    /**
-    * Disable error reporting
-    */
-    $use_errors = libxml_use_internal_errors(true);
+    $doerr = static::$internal_insert_xml_errors;
+    if ($doerr)
+      [$prev,$cnt] = static::useErrors(true);
 
     if (!$fragment->appendXML($xml))
-    {
-      libxml_use_internal_errors($use_errors);
-      throw new InvalidArgumentException(libxml_get_last_error()->message);
-    }
-    libxml_use_internal_errors($use_errors);
+    { // Method failed. This should only be reached if $doerr=true, but...
+      $err = static::lastError();
+      if (is_object($err) && isset($err->message))
+        $msg = $err->message;
+      else
+        $msg = 'libXML parsing error'; // should never be seen, but...
 
-    $this->insertNode($tmp, $fragment, $mode);
+      if ($doerr)
+      { // We're using our own custom exceptions.
+        static::useErrors($prev);
+      }
+
+      throw new InvalidArgumentException($msg);
+    }
+    elseif ($doerr)
+    { // Reset the errors back to what they were previously.
+      static::useErrors($prev);
+    }
+
+    $this->insertNode($tmp, $fragment, $mode, false);
 
     return $this;
   }
@@ -749,11 +805,11 @@ class SimpleDOM extends SimpleXMLElement
   *
   * @param  string      $target   Target of the processing instruction
   * @param  string|array  $data   Content of the processing instruction
-  * @return bool            TRUE on success, FALSE on failure
+  * @return SimpleDOM  Current node
   */
   public function insertPI($target, $data = null, $mode = 'before')
   {
-    $tmp = dom_import_simplexml($this);
+    $tmp = $this->asDOM();
     $doc = $tmp->ownerDocument;
 
     if (isset($data))
@@ -783,7 +839,7 @@ class SimpleDOM extends SimpleXMLElement
 
     if ($pi !== false)
     {
-      $this->insertNode($tmp, $pi, $mode);
+      $this->insertNode($tmp, $pi, $mode, false);
     }
 
     return $this;
@@ -798,7 +854,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function setAttributes(array $attr, $ns = null)
   {
-    $dom = dom_import_simplexml($this);
+    $dom = $this->asDOM();
     foreach ($attr as $k => $v)
     {
       $dom->setAttributeNS($ns, $k, $v);
@@ -818,7 +874,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function innerHTML()
   {
-    $dom = dom_import_simplexml($this);
+    $dom = $this->asDOM();
     $doc = $dom->ownerDocument;
 
     $html = '';
@@ -852,7 +908,7 @@ class SimpleDOM extends SimpleXMLElement
   */
   public function outerXML()
   {
-    $dom = dom_import_simplexml($this);
+    $dom = $this->asDOM();
     return $dom->ownerDocument->saveXML($dom);
   }
 
@@ -946,10 +1002,9 @@ class SimpleDOM extends SimpleXMLElement
   *
   * @return SimpleDOM
   */
-  public function rootElement ()
+  public function rootElement (): SimpleDOM
   {
-    $tmp = dom_import_simplexml($this);
-    return simplexml_import_dom($tmp->ownerDocument->documentElement, get_class($this));
+    return static::fromDOM($this->asDOM()->ownerDocument->documentElement);
   }
 
   /**
@@ -979,21 +1034,14 @@ class SimpleDOM extends SimpleXMLElement
   /**
   * Transform current node and return the result
   *
-  * Will take advantage of {@link http://pecl.php.net/package/xslcache PECL's xslcache}
-  * if available
+  * Requires the 'xsl' extension to be installed.
   *
   * @param  string  $filepath   Path to stylesheet
-  * @param  bool  $use_xslcache If TRUE, use the XSL Cache extension if available
   * @return string          Result
   */
-  public function XSLT($filepath, $use_xslcache = true)
+  public function XSLT($filepath)
   {
-    if ($use_xslcache && extension_loaded('xslcache'))
-    {
-      $xslt = new XSLTCache;
-      $xslt->importStylesheet($filepath);
-    }
-    elseif (extension_loaded('xsl'))
+    if (extension_loaded('xsl'))
     {
       $xsl = new DOMDocument;
       $xsl->load($filepath);
@@ -1006,7 +1054,7 @@ class SimpleDOM extends SimpleXMLElement
       throw new Exception("The 'xsl' extension is not available.");
     }
 
-    return $xslt->transformToXML(dom_import_simplexml($this));
+    return $xslt->transformToXML($this->asDOM());
   }
 
   /**
@@ -1150,11 +1198,14 @@ class SimpleDOM extends SimpleXMLElement
   */
   protected function _xpath($xpath)
   {
-    $use_errors = libxml_use_internal_errors(true);
+    $doerr = static::$internal_xpath_errors;
+    if ($doerr)
+      [$prev,$cnt] = static::useErrors(true);
 
     $nodes = $this->xpath($xpath);
 
-    libxml_use_internal_errors($use_errors);
+    if ($doerr)
+      static::useErrors($prev);
 
     if ($nodes === false)
     {
@@ -1164,16 +1215,16 @@ class SimpleDOM extends SimpleXMLElement
     return $nodes;
   }
 
-  protected function insert($type, $content, $mode)
+  protected function insert(string $type, $content, string $mode, bool $retSD=false)
   {
     $tmp  = dom_import_simplexml($this);
     $method = 'create' . $type;
 
     $node = $tmp->ownerDocument->$method($content);
-    return $this->insertNode($tmp, $node, $mode);
+    return $this->insertNode($tmp, $node, $mode, $retSD);
   }
 
-  protected function insertNode(DOMNode $tmp, DOMNode $node, $mode)
+  protected static function insertNode(DOMNode $tmp, DOMNode $node, string $mode, bool $retSD)
   {
     if ($mode === 'before'
      || $mode === 'after')
@@ -1201,7 +1252,15 @@ class SimpleDOM extends SimpleXMLElement
       return $tmp->parentNode->appendChild($node);
     }
 
-    return $tmp->appendChild($node);
+    $new = $tmp->appendChild($node);
+    if ($retSD)
+    { // Convert back into a SimpleDOM.
+      return static::fromDOM($new);
+    }
+    else
+    { // Return as a raw DOMNode.
+      return $new;
+    }
   }
 
   static protected function fromHTML(string $method, string $arg, int $opts): 

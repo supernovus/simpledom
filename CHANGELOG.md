@@ -11,9 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Static `loadFile()` method to load XML file.
 - Static `fromDOM()` method to get a SimpleDOM from a DOMNode.
 - Static `fromSimpleXML()` method to get a SimpleDOM from a SimpleXMLElement.
-- Static `from()` method to detect input and call an appropriate loader.
-- Static `load()` method is an alias to `from()`.
-- Static `useErrors(), lastError(), getErrors(), clearErrors()` methods that wrap libxml functions.
+- Static `load()` method to detect input and call an appropriate loader.
+- Static `from()` method is an alias to `load()`.
+- Static `useErrors(), lastError(), getErrors(), clearErrors()` methods that wrap various libxml functions with some convenience features included.
 - Static `errorRun()` for running a Closure and recording LibXML errors.
 - Static `errorCall()` for running a callable and recording LibXML errors.
 
@@ -26,12 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PHPUnit is now in the `require-dev` dependencies.
 - PHPUnit binary now in `./vendor/bin` directory.
 - PHPUnit using `vendor/autoload.php` as bootstrap.
+- `insertXML()` and internal `_xpath()` using new error handling methodology.
+- Updated all the tests with PHPUnit 9.x support.
 
 ### Removed
 - Removed downloading the phpunit.phar from the Makefile. Use composer instead.
 - Moved the global functions into the `lum/simpledom-functional` package.
 - Any tests for the global functions are moved into the new package as well.
-- The `&$errors` option from `loadHTML()` and `loadHTMLFile()` is gone now.
+- The `&$errors` option from `loadHTML()` and `loadHTMLFile()` is gone now. Instead if you want to get parse errors, just wrap the calls in an `[$res, $err] = errorRun(fn() => SimpleDOM::loadHTML($htmlDoc))` block and presto, results from the command, and an array of errors. This works for _any_ method calls, and I think is a better way of handling LibXML errors.
 
 ## [2.1.2]
 ### Added
